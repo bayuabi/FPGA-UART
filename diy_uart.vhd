@@ -1,0 +1,87 @@
+--library IEEE;
+--use IEEE.STD_LOGIC_1164.ALL;
+--
+--entity diy_uart is
+--	Port(
+--		o : out STD_LOGIC
+--	);
+--end entity;
+--
+--architecture diy_uart_arc of diy_uart is
+--begin
+--	o <= '1';
+--end diy_uart_arc;
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+entity diy_uart is
+	Generic(
+		baud_scaler : integer := 2604
+	);
+	Port(
+		clk_50Mhz : in STD_LOGIC;
+		tx_out : out STD_LOGIC;
+--		state : out STD_LOGIC_VECTOR(1 downto 0);
+		clk_out : out STD_LOGIC
+	);
+end diy_uart;
+
+architecture Behavioral of diy_uart is
+
+type uart_tx_state is (idle, start, data, stop);
+signal uart_tx_sig : uart_tx_state := idle;
+signal scale_cnt : integer range 0 to baud_scaler - 1;
+signal clk_temp : STD_LOGIC := '0';
+signal uart_tx_data : STD_LOGIC_VECTOR(7 downto 0) := x"59";
+signal byte_cnt : integer range 0 to 200 := 0;
+
+begin
+	clock_scale_proc : process(clk_50Mhz)
+	begin
+		if rising_edge(clk_50Mhz) then
+			if scale_cnt = baud_scaler - 1 then
+				clk_temp <= not (clk_temp);
+				scale_cnt <= 0;
+			else
+				scale_cnt <= scale_cnt + 1;
+			end if;
+		end if;
+	end process clock_scale_proc;
+	clk_out <= clk_temp;
+	uart_tx_proc : process(clk_temp)
+	begin
+		if rising_edge(clk_temp) then
+			case uart_tx_sig is
+				when idle =>
+					if byte_cnt = 10 then
+						tx_out <= '1';
+--						state <= "00";
+						uart_tx_sig <= start;
+						byte_cnt <= 0;
+					else
+						byte_cnt <= byte_cnt + 1;
+					end if;
+				when start =>
+--					state <= "01";
+					tx_out <= '0';
+					uart_tx_sig <= data;
+				when data =>
+--					state <= "10";
+					if byte_cnt = 7 then
+						tx_out <= uart_tx_data(byte_cnt);
+						byte_cnt <= 0;
+						uart_tx_sig <= stop;
+					else
+						tx_out <= uart_tx_data(byte_cnt);
+						byte_cnt <= byte_cnt + 1;
+					end if;
+				when stop =>
+--					state <= "11";
+					tx_out <= '1';
+					uart_tx_sig <= idle;
+			end case;
+		end if;
+	end process uart_tx_proc;
+end Behavioral;
+

@@ -1,0 +1,7 @@
+
+State Machine - |diy_uart|uart_tx_sig
+Name uart_tx_sig.stop uart_tx_sig.data uart_tx_sig.start uart_tx_sig.idle 
+uart_tx_sig.idle 0 0 0 0 
+uart_tx_sig.start 0 0 1 1 
+uart_tx_sig.data 0 1 0 1 
+uart_tx_sig.stop 1 0 0 1 

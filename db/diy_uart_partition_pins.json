@@ -1,0 +1,21 @@
+{
+	"partitions" : [
+		{
+			"name" : "Top",
+			"pins" : [
+				{
+					"name" : "tx_out",
+					"strict" : false
+				},
+				{
+					"name" : "clk_out",
+					"strict" : false
+				},
+				{
+					"name" : "clk_50Mhz",
+					"strict" : false
+				}
+			]
+		}
+	]
+}
